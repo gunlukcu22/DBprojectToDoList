@@ -52,7 +52,7 @@
             this.rateButton = new System.Windows.Forms.Button();
             this.sortOriginalButton = new System.Windows.Forms.Button();
             this.sortMyRatingButton = new System.Windows.Forms.Button();
-            this.button6 = new System.Windows.Forms.Button();
+            this.deleteButton = new System.Windows.Forms.Button();
             this.footNote = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.restaurantGrid)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.myListGrid)).BeginInit();
@@ -287,15 +287,15 @@
             this.sortMyRatingButton.Text = "Sort Restaurants by My Rating";
             this.sortMyRatingButton.UseVisualStyleBackColor = true;
             // 
-            // button6
+            // deleteButton
             // 
-            this.button6.Font = new System.Drawing.Font("JetBrains Mono Light", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.button6.Location = new System.Drawing.Point(949, 963);
-            this.button6.Name = "button6";
-            this.button6.Size = new System.Drawing.Size(222, 65);
-            this.button6.TabIndex = 29;
-            this.button6.Text = "Delete Restaurant";
-            this.button6.UseVisualStyleBackColor = true;
+            this.deleteButton.Font = new System.Drawing.Font("JetBrains Mono Light", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.deleteButton.Location = new System.Drawing.Point(949, 963);
+            this.deleteButton.Name = "deleteButton";
+            this.deleteButton.Size = new System.Drawing.Size(222, 65);
+            this.deleteButton.TabIndex = 29;
+            this.deleteButton.Text = "Delete Restaurant";
+            this.deleteButton.UseVisualStyleBackColor = true;
             // 
             // footNote
             // 
@@ -316,7 +316,7 @@
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(47)))), ((int)(((byte)(47)))), ((int)(((byte)(47)))));
             this.ClientSize = new System.Drawing.Size(1196, 1057);
             this.Controls.Add(this.footNote);
-            this.Controls.Add(this.button6);
+            this.Controls.Add(this.deleteButton);
             this.Controls.Add(this.sortMyRatingButton);
             this.Controls.Add(this.sortOriginalButton);
             this.Controls.Add(this.rateButton);
@@ -376,7 +376,7 @@
         private Button rateButton;
         private Button sortOriginalButton;
         private Button sortMyRatingButton;
-        private Button button6;
+        private Button deleteButton;
         private Label footNote;
     }
 }
