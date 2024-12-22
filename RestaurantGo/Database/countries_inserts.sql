@@ -1,0 +1,15 @@
+INSERT INTO Countries (CountryCode, CountryName) VALUES (162, 'Philippines');
+INSERT INTO Countries (CountryCode, CountryName) VALUES (30, nan);
+INSERT INTO Countries (CountryCode, CountryName) VALUES (216, nan);
+INSERT INTO Countries (CountryCode, CountryName) VALUES (14, nan);
+INSERT INTO Countries (CountryCode, CountryName) VALUES (37, nan);
+INSERT INTO Countries (CountryCode, CountryName) VALUES (184, nan);
+INSERT INTO Countries (CountryCode, CountryName) VALUES (214, nan);
+INSERT INTO Countries (CountryCode, CountryName) VALUES (1, nan);
+INSERT INTO Countries (CountryCode, CountryName) VALUES (94, nan);
+INSERT INTO Countries (CountryCode, CountryName) VALUES (148, nan);
+INSERT INTO Countries (CountryCode, CountryName) VALUES (215, nan);
+INSERT INTO Countries (CountryCode, CountryName) VALUES (166, nan);
+INSERT INTO Countries (CountryCode, CountryName) VALUES (189, nan);
+INSERT INTO Countries (CountryCode, CountryName) VALUES (191, nan);
+INSERT INTO Countries (CountryCode, CountryName) VALUES (208, nan);
