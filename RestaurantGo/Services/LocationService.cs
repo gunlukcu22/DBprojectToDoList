@@ -1,8 +1,8 @@
 ﻿using System;
 
-public class Class1
+public class Class9
 {
-	public Class1()
+	public Class9()
 	{
 	}
 }

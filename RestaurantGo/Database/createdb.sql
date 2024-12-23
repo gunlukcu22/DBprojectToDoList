@@ -59,8 +59,9 @@ CREATE TABLE ToDoList (
     RestaurantName VARCHAR(255),
     LocationID INT,
     IsChecked BOOLEAN DEFAULT 0,
-    Notes TEXT,
-    DateAdded TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    RatingText VARCHAR(50),
+
+
     FOREIGN KEY (RestaurantID) REFERENCES Restaurants(RestaurantID),
     FOREIGN KEY (LocationID) REFERENCES Locations(LocationID)
 );

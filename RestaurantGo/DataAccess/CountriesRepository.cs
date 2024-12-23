@@ -1,8 +1,13 @@
-﻿using System;
+﻿using System.Data;
 
-public class Class1
+namespace RestaurantGo.DataAccess
 {
-	public Class1()
-	{
-	}
+    public static class CountriesRepository
+    {
+        public static DataTable GetAllCountries()
+        {
+            string query = "SELECT CountryName FROM Countries;";
+            return DatabaseHelper.ExecuteQuery(query);
+        }
+    }
 }
