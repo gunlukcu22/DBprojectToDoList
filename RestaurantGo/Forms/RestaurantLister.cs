@@ -1,6 +1,3 @@
-using MySql.Data.MySqlClient;
-using RestaurantGo.DataAccess;
-
 namespace DBprojectToDoList
 {
     public partial class RestaurantLister : Form
@@ -81,7 +78,23 @@ namespace DBprojectToDoList
             }
         }
 
-        private void FilterRestaurantsButton_Click(object sender, EventArgs e)
+        private void FilterCountriesByCuisine(int cuisineId)
+        {
+            try
+            {
+                var countries = CountriesRepository.GetCountriesByCuisine(cuisineId);
+                countryPicker.DataSource = null; // Clear existing data binding
+                countryPicker.DisplayMember = "CountryID";
+                countryPicker.ValueMember = "CountryID";
+                countryPicker.DataSource = countries;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error filtering countries by cuisine: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void filterRestaurantsButton_Click(object sender, EventArgs e)
         {
             try
             {
@@ -124,22 +137,21 @@ namespace DBprojectToDoList
             }
         }
 
-        private void AddToMyListButton_Click(object sender, EventArgs e)
+        private void addToMyListButton_Click(object sender, EventArgs e)
         {
             try
             {
                 foreach (DataGridViewRow row in restaurantGrid.SelectedRows)
                 {
                     string query = @"
-                        INSERT INTO ToDoList (RestaurantID, RestaurantName, LocationID, IsChecked)
-                        VALUES (@RestaurantID, @RestaurantName, @LocationID, @IsChecked);";
+                INSERT INTO ToDoList (RestaurantID, RestaurantName, IsChecked)
+                VALUES (@RestaurantID, @RestaurantName, @IsChecked);";
 
                     var parameters = new MySqlParameter[]
                     {
-                        new MySqlParameter("@RestaurantID", row.Cells["RestaurantID"].Value),
-                        new MySqlParameter("@RestaurantName", row.Cells["RestaurantName"].Value),
-                        new MySqlParameter("@LocationID", row.Cells["LocationID"].Value),
-                        new MySqlParameter("@IsChecked", false)
+                new MySqlParameter("@RestaurantID", row.Cells["RestaurantID"].Value),
+                new MySqlParameter("@RestaurantName", row.Cells["RestaurantName"].Value),
+                new MySqlParameter("@IsChecked", false)
                     };
 
                     DatabaseHelper.ExecuteNonQuery(query, parameters);
@@ -165,6 +177,82 @@ namespace DBprojectToDoList
             catch (Exception ex)
             {
                 MessageBox.Show($"Error loading My List: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void InitializeMyListGrid()
+        {
+            myListGrid.Columns.Clear();
+            myListGrid.AutoGenerateColumns = false;
+
+            var checkBoxColumn = new DataGridViewCheckBoxColumn
+            {
+                HeaderText = "Visited",
+                DataPropertyName = "IsChecked",
+                Name = "IsChecked"
+            };
+            myListGrid.Columns.Add(checkBoxColumn);
+
+            var nameColumn = new DataGridViewTextBoxColumn
+            {
+                HeaderText = "Restaurant Name",
+                DataPropertyName = "RestaurantName",
+                Name = "RestaurantName"
+            };
+            myListGrid.Columns.Add(nameColumn);
+
+            // Add more columns as needed
+        }
+
+        private void MyListGrid_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex >= 0 && myListGrid.Columns[e.ColumnIndex].Name == "IsChecked")
+            {
+                var row = myListGrid.Rows[e.RowIndex];
+                bool isChecked = Convert.ToBoolean(row.Cells["IsChecked"].Value);
+                int toDoID = Convert.ToInt32(row.Cells["ToDoID"].Value);
+
+                string query = "UPDATE ToDoList SET IsChecked = @IsChecked WHERE ToDoID = @ToDoID;";
+                var parameters = new MySqlParameter[]
+                {
+            new MySqlParameter("@IsChecked", isChecked),
+            new MySqlParameter("@ToDoID", toDoID)
+                };
+
+                try
+                {
+                    DatabaseHelper.ExecuteNonQuery(query, parameters);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error updating visited status: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
+
+        private void deleteButton_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                foreach (DataGridViewRow row in myListGrid.SelectedRows)
+                {
+                    int toDoID = Convert.ToInt32(row.Cells["ToDoID"].Value);
+
+                    string query = "DELETE FROM ToDoList WHERE ToDoID = @ToDoID;";
+                    var parameters = new MySqlParameter[]
+                    {
+                new MySqlParameter("@ToDoID", toDoID)
+                    };
+
+                    DatabaseHelper.ExecuteNonQuery(query, parameters);
+                }
+
+                MessageBox.Show("Selected restaurants removed from My List.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                LoadMyList();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error removing from My List: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
