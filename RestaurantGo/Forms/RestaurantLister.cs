@@ -9,6 +9,7 @@ namespace DBprojectToDoList
         {
             InitializeComponent();
             LoadCountries();
+            LoadCities(); // Load all cities at startup
             LoadCuisines();
         }
 
@@ -24,6 +25,7 @@ namespace DBprojectToDoList
                 var countries = CountriesRepository.GetAllCountries();
                 countryPicker.DataSource = countries;
                 countryPicker.DisplayMember = "CountryName";
+                countryPicker.ValueMember = "CountryName"; // Ensure ValueMember is set for selection
             }
             catch (Exception ex)
             {
@@ -31,27 +33,23 @@ namespace DBprojectToDoList
             }
         }
 
-        private void LoadCuisines()
+        private void LoadCities()
         {
             try
             {
-                var cuisines = CuisinesRepository.GetAllCuisines();
-                cuisinePicker.DataSource = cuisines;
-                cuisinePicker.DisplayMember = "CuisineType";
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error loading cuisines: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        private void LoadCities(string country)
-        {
-            try
-            {
-                var cities = CitiesRepository.GetCitiesByCountry(country);
-                cityPicker.DataSource = cities;
-                cityPicker.DisplayMember = "CityName";
+                var cities = CitiesRepository.GetAllCities(); // Fetch all cities
+                if (cities.Rows.Count > 0 && cities.Columns.Contains("CityName"))
+                {
+                    cityPicker.DataSource = null; // Clear existing data binding
+                    cityPicker.DisplayMember = "CityName";
+                    cityPicker.ValueMember = "CityID";
+                    cityPicker.DataSource = cities;
+                }
+                else
+                {
+                    cityPicker.DataSource = null;
+                    MessageBox.Show("No cities available.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
             }
             catch (Exception ex)
             {
@@ -59,12 +57,27 @@ namespace DBprojectToDoList
             }
         }
 
-        private void CountryPicker_SelectedIndexChanged(object sender, EventArgs e)
+        private void LoadCuisines()
         {
-            if (countryPicker.SelectedItem != null)
+            try
             {
-                string selectedCountry = countryPicker.SelectedItem.ToString();
-                LoadCities(selectedCountry);
+                var cuisines = CuisinesRepository.GetAllCuisines(); // Fetch all cuisines
+                if (cuisines.Rows.Count > 0 && cuisines.Columns.Contains("CuisineType"))
+                {
+                    cuisinePicker.DataSource = null; // Clear existing data binding
+                    cuisinePicker.DisplayMember = "CuisineType";
+                    cuisinePicker.ValueMember = "CuisineID";
+                    cuisinePicker.DataSource = cuisines;
+                }
+                else
+                {
+                    cuisinePicker.DataSource = null;
+                    MessageBox.Show("No cuisines available.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading cuisines: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -77,7 +90,7 @@ namespace DBprojectToDoList
                 string cuisine = cuisinePicker.SelectedItem?.ToString() ?? "";
 
                 string query = @"
-                    SELECT RestaurantName, LocationID, PriceRange
+                    SELECT RestaurantID, RestaurantName, LocationID, PriceRange
                     FROM Restaurants
                     WHERE (@Country = '' OR LocationID IN 
                         (SELECT Locations.LocationID 
@@ -108,6 +121,50 @@ namespace DBprojectToDoList
             catch (Exception ex)
             {
                 MessageBox.Show($"Error fetching restaurants: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void AddToMyListButton_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                foreach (DataGridViewRow row in restaurantGrid.SelectedRows)
+                {
+                    string query = @"
+                        INSERT INTO ToDoList (RestaurantID, RestaurantName, LocationID, IsChecked)
+                        VALUES (@RestaurantID, @RestaurantName, @LocationID, @IsChecked);";
+
+                    var parameters = new MySqlParameter[]
+                    {
+                        new MySqlParameter("@RestaurantID", row.Cells["RestaurantID"].Value),
+                        new MySqlParameter("@RestaurantName", row.Cells["RestaurantName"].Value),
+                        new MySqlParameter("@LocationID", row.Cells["LocationID"].Value),
+                        new MySqlParameter("@IsChecked", false)
+                    };
+
+                    DatabaseHelper.ExecuteNonQuery(query, parameters);
+                }
+
+                MessageBox.Show("Selected restaurants added to My List.", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                LoadMyList();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error adding to My List: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void LoadMyList()
+        {
+            try
+            {
+                string query = "SELECT * FROM ToDoList;";
+                var dataTable = DatabaseHelper.ExecuteQuery(query);
+                myListGrid.DataSource = dataTable;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading My List: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
