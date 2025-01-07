@@ -34,6 +34,8 @@ CREATE TABLE Restaurants (
     RestaurantName VARCHAR(255) NOT NULL,
     LocationID INT NOT NULL,
     PriceRange INT,
+    CuisineType VARCHAR(100) NOT NULL,
+    
     FOREIGN KEY (LocationID) REFERENCES Locations(LocationID)
 );
 
@@ -59,7 +61,5 @@ CREATE TABLE ToDoList (
     RestaurantName VARCHAR(255),
     IsChecked BOOLEAN DEFAULT 0,
     RatingText VARCHAR(50),
-
-
-    FOREIGN KEY (RestaurantID) REFERENCES Restaurants(RestaurantID),
+    FOREIGN KEY (RestaurantID) REFERENCES Restaurants(RestaurantID)
 );
