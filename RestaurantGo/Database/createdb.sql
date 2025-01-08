@@ -13,9 +13,9 @@ CREATE TABLE Countries (
 -- Create Cities Table
 CREATE TABLE Cities (
     CityID INT PRIMARY KEY AUTO_INCREMENT,
-    CityName VARCHAR(100) NOT NULL,
-    CountryID INT NOT NULL,
-    FOREIGN KEY (CountryID) REFERENCES Countries(CountryID)
+    CityName VARCHAR(100) NOT NULL UNIQUE,
+    CountryCode INT NOT NULL,
+    FOREIGN KEY (CountryCode) REFERENCES Countries(CountryCode)
 );
 
 -- Create Locations Table
@@ -24,8 +24,8 @@ CREATE TABLE Locations (
     Locality VARCHAR(150) NOT NULL,
     Longitude FLOAT NOT NULL,
     Latitude FLOAT NOT NULL,
-    CityID INT NOT NULL,
-    FOREIGN KEY (CityID) REFERENCES Cities(CityID)
+    CityName VARCHAR(100) NOT NULL,
+    FOREIGN KEY (CityName) REFERENCES Cities(CityName)
 );
 
 -- Create Restaurants Table
@@ -34,7 +34,6 @@ CREATE TABLE Restaurants (
     RestaurantName VARCHAR(255) NOT NULL,
     LocationID INT NOT NULL,
     PriceRange INT,
-    CuisineType VARCHAR(100) NOT NULL,
     
     FOREIGN KEY (LocationID) REFERENCES Locations(LocationID)
 );

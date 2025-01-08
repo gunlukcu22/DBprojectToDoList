@@ -15,6 +15,26 @@ namespace RestaurantGo.DataAccess
         ///<param name="query">The SQL query to execute.</param>
         /// <param name="parameters">Optional parameters for the query.</param>
         /// <returns>A DataTable containing the query results.</returns>
+        /// 
+
+        public static bool TestConnection()
+        {
+            try
+            {
+                using (MySqlConnection connection = new MySqlConnection(connectionString))
+                {
+                    connection.Open();
+                    Console.WriteLine("Connection successful!");
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Connection failed: {ex.Message}");
+                return false;
+            }
+        }
+
         public static DataTable ExecuteQuery(string query, MySqlParameter[] parameters = null)
         {
             try
@@ -22,8 +42,17 @@ namespace RestaurantGo.DataAccess
                 using (MySqlConnection connection = new MySqlConnection(connectionString))
                 {
                     MySqlCommand command = new MySqlCommand(query, connection);
+
                     if (parameters != null)
+                    {
                         command.Parameters.AddRange(parameters);
+
+                        // Debugging Parameters
+                        foreach (var param in parameters)
+                        {
+                            Console.WriteLine($"Parameter: {param.ParameterName}, Value: {param.Value}");
+                        }
+                    }
 
                     DataTable dataTable = new DataTable();
                     using (MySqlDataAdapter adapter = new MySqlDataAdapter(command))
@@ -36,10 +65,11 @@ namespace RestaurantGo.DataAccess
             }
             catch (Exception ex)
             {
-                // Log or handle the exception as needed
+                Console.WriteLine($"Error executing query: {ex.Message}");
                 throw new Exception("Error executing query: " + ex.Message, ex);
             }
         }
+
 
         /// <summary>
         /// Executes a non-query command (e.g., INSERT, UPDATE, DELETE).

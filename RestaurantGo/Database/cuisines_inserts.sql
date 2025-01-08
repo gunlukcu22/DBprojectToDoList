@@ -140,6 +140,6 @@ INSERT INTO Cuisines (CuisineID, CuisineType) VALUES (139, 'Kebab');
 INSERT INTO Cuisines (CuisineID, CuisineType) VALUES (140, 'Turkish Pizza');
 INSERT INTO Cuisines (CuisineID, CuisineType) VALUES (141, 'Izgara');
 INSERT INTO Cuisines (CuisineID, CuisineType) VALUES (142, 'World Cuisine');
-INSERT INTO Cuisines (CuisineID, CuisineType) VALUES (143, 'D�_ner');
+INSERT INTO Cuisines (CuisineID, CuisineType) VALUES (143, 'Doner');
 INSERT INTO Cuisines (CuisineID, CuisineType) VALUES (144, 'Restaurant Cafe');
-INSERT INTO Cuisines (CuisineID, CuisineType) VALUES (145, 'B�_rek');
+INSERT INTO Cuisines (CuisineID, CuisineType) VALUES (145, 'Borek');

@@ -7,7 +7,7 @@ namespace RestaurantGo.DataAccess
     {
         public static DataTable GetAllCountries()
         {
-            string query = "SELECT CountryID, CountryName FROM Countries;";
+            string query = "SELECT CountryCode, CountryName FROM Countries;";
             return DatabaseHelper.ExecuteQuery(query);
         }
 

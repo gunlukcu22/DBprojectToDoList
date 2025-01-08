@@ -1,3 +1,6 @@
+using RestaurantGo.DataAccess;
+using MySql.Data.MySqlClient;
+
 namespace DBprojectToDoList
 {
     public partial class RestaurantLister : Form
@@ -5,8 +8,17 @@ namespace DBprojectToDoList
         public RestaurantLister()
         {
             InitializeComponent();
+
+            if (!DatabaseHelper.TestConnection())
+            {
+                MessageBox.Show("Failed to connect to the database. Please contact support.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Close(); // Close the application if the connection fails
+            }
+
             LoadCountries();
-            LoadCities(); // Load all cities at startup
+            countryPicker.SelectedIndexChanged += countryPicker_SelectedIndexChanged;
+            filterRestaurantsButton.Click += filterRestaurantsButton_Click;
+            /* LoadCities(); */
             LoadCuisines();
         }
 
@@ -20,17 +32,65 @@ namespace DBprojectToDoList
             try
             {
                 var countries = CountriesRepository.GetAllCountries();
-                countryPicker.DataSource = countries;
-                countryPicker.DisplayMember = "CountryName";
-                countryPicker.ValueMember = "CountryName"; // Ensure ValueMember is set for selection
+                MessageBox.Show($"Number of countries retrieved: {countries.Rows.Count}");
+                if (countries.Rows.Count > 0 && countries.Columns.Contains("CountryCode"))
+                {
+                    countryPicker.DataSource = null; // Clear existing data binding
+                    countryPicker.DisplayMember = "CountryName";
+                    countryPicker.ValueMember = "CountryCode"; // Ensure ValueMember matches the query parameter
+                    countryPicker.DataSource = countries;
+
+                    // Set the default selected value to the first country
+                    countryPicker.SelectedIndex = 0;
+                }
+                else
+                {
+                    countryPicker.DataSource = null;
+                    MessageBox.Show("No countries available.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Error loading countries: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
         private void LoadCities()
+        {
+            try
+            {
+                // Get the selected country
+                var selectedCountryCode = countryPicker.SelectedValue?.ToString();
+
+                if (string.IsNullOrEmpty(selectedCountryCode))
+                {
+                    MessageBox.Show("Please select a country first.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    cityPicker.DataSource = null; // Clear the city picker
+                    return;
+                }
+
+                // Fetch cities for the selected country
+                var cities = CitiesRepository.GetCitiesByCountry(selectedCountryCode);
+
+                if (cities.Rows.Count > 0 && cities.Columns.Contains("CityName"))
+                {
+                    cityPicker.DataSource = null; // Clear existing data binding
+                    cityPicker.DisplayMember = "CityName";
+                    cityPicker.ValueMember = "CityID";
+                    cityPicker.DataSource = cities;
+                }
+                else
+                {
+                    cityPicker.DataSource = null;
+                    MessageBox.Show("No cities available for the selected country.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading cities: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        /*private void LoadCities()
         {
             try
             {
@@ -52,6 +112,11 @@ namespace DBprojectToDoList
             {
                 MessageBox.Show($"Error loading cities: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }*/
+
+        private void countryPicker_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            LoadCities();
         }
 
         private void LoadCuisines()
@@ -93,49 +158,93 @@ namespace DBprojectToDoList
                 MessageBox.Show($"Error filtering countries by cuisine: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
         private void filterRestaurantsButton_Click(object sender, EventArgs e)
         {
+            MessageBox.Show("Filter Restaurants button clicked!");
+
             try
             {
-                string country = countryPicker.SelectedItem?.ToString() ?? "";
-                string city = cityPicker.SelectedItem?.ToString() ?? "";
-                string cuisine = cuisinePicker.SelectedItem?.ToString() ?? "";
+                // Get selected city
+                string cityName = cityPicker.SelectedValue?.ToString();
 
+                if (string.IsNullOrEmpty(cityName))
+                {
+                    MessageBox.Show("Please select a city to filter restaurants.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
+
+                MessageBox.Show($"Selected City: {cityName}");
+
+                // Query to filter restaurants by the selected city
                 string query = @"
-                    SELECT RestaurantID, RestaurantName, LocationID, PriceRange
-                    FROM Restaurants
-                    WHERE (@Country = '' OR LocationID IN 
-                        (SELECT Locations.LocationID 
-                         FROM Locations 
-                         INNER JOIN Cities ON Locations.CityID = Cities.CityID 
-                         INNER JOIN Countries ON Cities.CountryID = Countries.CountryID
-                         WHERE Countries.CountryName = @Country))
-                      AND (@City = '' OR LocationID IN 
-                        (SELECT Locations.LocationID 
-                         FROM Locations 
-                         INNER JOIN Cities ON Locations.CityID = Cities.CityID 
-                         WHERE Cities.CityName = @City))
-                      AND (@Cuisine = '' OR RestaurantID IN 
-                        (SELECT RestaurantID FROM Restaurant_Cuisines 
-                         INNER JOIN Cuisines ON Restaurant_Cuisines.CuisineID = Cuisines.CuisineID 
-                         WHERE Cuisines.CuisineType = @Cuisine));";
+                SELECT RestaurantID, RestaurantName, LocationID, PriceRange
+                FROM Restaurants
+                WHERE LocationID IN 
+                (SELECT Locations.LocationID 
+                 FROM Locations 
+                 WHERE Locations.CityName = @CityName);";
 
                 var parameters = new MySqlParameter[]
                 {
-                    new MySqlParameter("@Country", country),
-                    new MySqlParameter("@City", city),
-                    new MySqlParameter("@Cuisine", cuisine)
+            new MySqlParameter("@CityName", cityName)
                 };
 
+                // Execute the query and bind the results to the grid
                 var dataTable = DatabaseHelper.ExecuteQuery(query, parameters);
+                MessageBox.Show($"Rows Returned: {dataTable.Rows.Count}");
                 restaurantGrid.DataSource = dataTable;
+
+                if (dataTable.Rows.Count == 0)
+                {
+                    MessageBox.Show("No restaurants found for the selected city.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Error fetching restaurants: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
+        /* private void filterRestaurantsButton_Click(object sender, EventArgs e)
+         {
+             try
+             {
+                 string country = countryPicker.SelectedItem?.ToString() ?? "";
+                 string city = cityPicker.SelectedItem?.ToString() ?? "";
+                 string cuisine = cuisinePicker.SelectedItem?.ToString() ?? "";
+
+                 string query = @"
+                     SELECT RestaurantID, RestaurantName, LocationID, PriceRange
+                     FROM Restaurants
+                     WHERE (@Country = '' OR LocationID IN 
+                         (SELECT Locations.LocationID 
+                          FROM Locations 
+                          INNER JOIN Cities ON Locations.CityID = Cities.CityID 
+                          WHERE Cities.CountryCode = @Country))
+                       AND (@City = '' OR LocationID IN 
+                         (SELECT Locations.LocationID 
+                          FROM Locations
+                          WHERE Cities.CityName = @City))
+                       AND (@Cuisine = '' OR RestaurantID IN 
+                         (SELECT RestaurantID FROM Restaurant_Cuisines 
+                          INNER JOIN Cuisines ON Restaurant_Cuisines.CuisineID = Cuisines.CuisineID 
+                          WHERE Cuisines.CuisineType = @Cuisine));";
+
+                 var parameters = new MySqlParameter[]
+                 {
+                     new MySqlParameter("@Country", country),
+                     new MySqlParameter("@City", city),
+                     new MySqlParameter("@Cuisine", cuisine)
+                 };
+
+                 var dataTable = DatabaseHelper.ExecuteQuery(query, parameters);
+                 restaurantGrid.DataSource = dataTable;
+             }
+             catch (Exception ex)
+             {
+                 MessageBox.Show($"Error fetching restaurants: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+             }
+         }*/
 
         private void addToMyListButton_Click(object sender, EventArgs e)
         {
